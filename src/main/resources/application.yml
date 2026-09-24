@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: csv-stats-player-persistence
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:csv-stats-player-persistence}
+      auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
+      key-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+    properties:
+      schema.registry.url: ${KAFKA_SCHEMA_REGISTRY_URL}
+      specific.avro.reader: true
+app:
+  kafka:
+    topics:
+      parsed-stats-player: ${KAFKA_PARSED_STATS_PLAYER_TOPIC:stats-player.parsed}
