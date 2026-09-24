@@ -15,9 +15,9 @@ public class StatsPlayer {
  private String min;
  private Integer fgm, fga, twopm, twopa, threepm, threepa, ftm, fta;
  @Column(name="plus_minus") private Integer plusMinus;
- @Column(name="or") private Integer or;
+ @Column(name=""or"") private Integer or;
  private Integer dr, pf, st;
- @Column(name="to") private Integer to;
+ @Column(name=""to"") private Integer to;
  private Integer bs, ba, tfs;
  @Column(name="source_event_id",nullable=false) private String sourceEventId;
 
