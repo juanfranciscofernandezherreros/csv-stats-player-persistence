@@ -1,5 +1,4 @@
-Current version: **1.0.4**
-
+![version](https://img.shields.io/badge/version-1.0.4-blue)
 # csv-stats-player-persistence
 
 Microservicio de persistencia separado de `csv-stats-player-consumer`.
