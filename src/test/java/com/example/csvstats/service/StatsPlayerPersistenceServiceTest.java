@@ -3,16 +3,28 @@ package com.example.csvstats.service;
 import com.example.csvstats.avro.StatsPlayerValue;
 import com.example.csvstats.entity.StatsPlayer;
 import com.example.csvstats.mapper.StatsPlayerMapper;
-import com.example.csvstats.repository.StatsPlayerRepository;
+import com.example.csvstats.repository.StatsPlayerUpsertRepository;
 import org.junit.jupiter.api.Test;
-import java.util.Optional;
-import static org.mockito.Mockito.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class StatsPlayerPersistenceServiceTest {
- @Test void upsertsByNaturalKey() {
-  var repo=mock(StatsPlayerRepository.class); var mapper=mock(StatsPlayerMapper.class); var service=new StatsPlayerPersistenceService(repo,mapper);
-  var value=mock(StatsPlayerValue.class); when(value.getMatchId()).thenReturn("m1"); when(value.getName()).thenReturn("p"); when(value.getTeam()).thenReturn("t");
-  var entity=new StatsPlayer(); when(repo.findByMatchIdAndNameAndTeam("m1","p","t")).thenReturn(Optional.of(entity)); when(mapper.toEntity(value,entity)).thenReturn(entity);
-  service.persist(value); verify(repo).save(entity);
+
+ @Test
+ void upsertsByNaturalKeyAtomically() {
+  var repo = mock(StatsPlayerUpsertRepository.class);
+  var mapper = mock(StatsPlayerMapper.class);
+  var service = new StatsPlayerPersistenceService(repo, mapper);
+  var value = mock(StatsPlayerValue.class);
+  var entity = new StatsPlayer();
+
+  when(mapper.toEntity(value, any(StatsPlayer.class))).thenReturn(entity);
+
+  service.persist(value);
+
+  verify(repo).upsert(entity);
  }
 }
