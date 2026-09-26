@@ -7,6 +7,7 @@ import com.example.csvstats.repository.StatsPlayerUpsertRepository;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,7 +22,7 @@ class StatsPlayerPersistenceServiceTest {
   var value = mock(StatsPlayerValue.class);
   var entity = new StatsPlayer();
 
-  when(mapper.toEntity(value, any(StatsPlayer.class))).thenReturn(entity);
+  when(mapper.toEntity(eq(value), any(StatsPlayer.class))).thenReturn(entity);
 
   service.persist(value);
 
