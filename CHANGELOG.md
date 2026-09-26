@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 - 2026-09-26
+
+- [minor] KAN-109 aplica la estrategia común de errores Kafka de KAN-18.
+- [minor] Clasifica errores de datos/integridad como non-retryable y fallos transitorios de PostgreSQL como retryable.
+- [minor] Configura retries/backoff y DLT `stats-player.parsed.DLT`.
+- [minor] Añade tests de error permanente y transitorio.
+
+
 ## 1.0.6 - 2026-09-25
 
 - [patch] KAN-83 sustituye los schemas locales StatsPlayer por `basketball-event-contracts:1.0.2`.
