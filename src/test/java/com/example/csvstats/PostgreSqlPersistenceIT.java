@@ -1,7 +1,9 @@
 package com.example.csvstats;
 
 import com.example.csvstats.avro.StatsPlayerValue;
+import com.example.csvstats.entity.StatsPlayer;
 import com.example.csvstats.repository.StatsPlayerRepository;
+import com.example.csvstats.repository.StatsPlayerUpsertRepository;
 import com.example.csvstats.service.StatsPlayerPersistenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,12 +15,15 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @SpringBootTest(properties={
@@ -41,6 +46,7 @@ class PostgreSqlPersistenceIT {
 
  @Autowired StatsPlayerPersistenceService service;
  @Autowired StatsPlayerRepository repository;
+ @Autowired StatsPlayerUpsertRepository upserts;
 
  @BeforeEach
  void cleanDatabase() {
@@ -77,6 +83,55 @@ class PostgreSqlPersistenceIT {
   } finally {
    executor.shutdownNow();
   }
+ }
+
+ @Test
+ void measuresSequentialVersusJdbcBatchThroughput() {
+  List<StatsPlayer> players = benchmarkPlayers(1_000);
+
+  long sequentialStart = System.nanoTime();
+  players.forEach(upserts::upsert);
+  long sequentialNanos = System.nanoTime() - sequentialStart;
+  assertEquals(players.size(), repository.count());
+
+  repository.deleteAll();
+
+  long batchStart = System.nanoTime();
+  upserts.upsertBatch(players);
+  long batchNanos = System.nanoTime() - batchStart;
+  assertEquals(players.size(), repository.count());
+
+  double sequentialThroughput = throughput(players.size(), sequentialNanos);
+  double batchThroughput = throughput(players.size(), batchNanos);
+
+  System.out.printf(
+          "KAN-22 PLAYER throughput: sequential=%.2f rows/s, jdbc-batch=%.2f rows/s, ratio=%.2fx%n",
+          sequentialThroughput,
+          batchThroughput,
+          batchThroughput / sequentialThroughput
+  );
+
+  assertTrue(sequentialThroughput > 0);
+  assertTrue(batchThroughput > 0);
+ }
+
+ private double throughput(int rows, long nanos) {
+  return rows / (nanos / 1_000_000_000.0);
+ }
+
+ private List<StatsPlayer> benchmarkPlayers(int count) {
+  List<StatsPlayer> players = new ArrayList<>(count);
+  for (int index = 0; index < count; index++) {
+   StatsPlayer player = new StatsPlayer();
+   player.setSourceEventId("benchmark-event");
+   player.setMatchId("benchmark-match");
+   player.setName("Player-" + index);
+   player.setTeam(index % 2 == 0 ? "Home" : "Away");
+   player.setPts(index % 40);
+   player.setMin("20:00");
+   players.add(player);
+  }
+  return players;
  }
 
  private void persistAfter(CountDownLatch start, StatsPlayerValue event) {
