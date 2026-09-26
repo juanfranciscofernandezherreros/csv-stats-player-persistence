@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 - 2026-09-26
+
+- [minor] KAN-53 sustituye `findByMatchIdAndNameAndTeam() + save()` por un upsert PostgreSQL atómico.
+- [minor] Define `(match_id, name, team)` como clave natural respaldada por la constraint existente.
+- [minor] Actualiza `source_event_id` con la reimportación que produjo el estado vigente.
+- [minor] Añade tests de integración de insert/update y redelivery concurrente.
+
 ## 1.1.1 - 2026-09-26
 
 - [patch] KAN-109 captura fallos de deserialización Avro mediante `ErrorHandlingDeserializer`.
