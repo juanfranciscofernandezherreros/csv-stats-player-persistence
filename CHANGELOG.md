@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 - 2026-09-26
+
+- [patch] KAN-109 captura fallos de deserialización Avro mediante `ErrorHandlingDeserializer`.
+- [patch] Permite publicar en DLT objetos Avro y bytes crudos mediante `DelegatingByTypeSerializer`.
+- [patch] Deja que Kafka seleccione la partición DLT y propaga fallos de publicación en DLT.
+- [patch] Añade cobertura del flujo deserialización fallida → DLT conservando los bytes originales.
+
 ## 1.1.0 - 2026-09-26
 
 - [minor] KAN-109 aplica la estrategia común de errores Kafka de KAN-18.
@@ -29,7 +36,7 @@
 
 ## 1.0.2 - 2026-09-24
 - Corrige el escape inválido de las anotaciones JPA.
-- Activa `hibernate.globally_quoted_identifiers` para soportar correctamente las columnas reservadas `"or"` y `"to"`.
+- Activa `hibernate.globally_quoted_identifiers` para soportar correctamente las columnas reservadas `"or"` y `"to"` de PostgreSQL.
 
 ## 1.0.1 - 2026-09-24
 - Corrige el mapeo JPA de las columnas PostgreSQL reservadas `"or"` y `"to"`.
