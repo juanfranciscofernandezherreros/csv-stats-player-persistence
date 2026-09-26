@@ -4,6 +4,10 @@ import com.example.csvstats.entity.StatsPlayer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+
 @Repository
 public class StatsPlayerUpsertRepository {
 
@@ -49,8 +53,23 @@ public class StatsPlayerUpsertRepository {
     }
 
     public void upsert(StatsPlayer player) {
-        jdbcTemplate.update(
+        jdbcTemplate.update(UPSERT_SQL, parameters(player));
+    }
+
+    public void upsertBatch(List<StatsPlayer> players) {
+        if (players.isEmpty()) {
+            return;
+        }
+        jdbcTemplate.batchUpdate(
                 UPSERT_SQL,
+                players,
+                players.size(),
+                (statement, player) -> bind(statement, player)
+        );
+    }
+
+    private Object[] parameters(StatsPlayer player) {
+        return new Object[]{
                 player.getMatchId(),
                 player.getName(),
                 player.getTeam(),
@@ -76,6 +95,13 @@ public class StatsPlayerUpsertRepository {
                 player.getBa(),
                 player.getTfs(),
                 player.getSourceEventId()
-        );
+        };
+    }
+
+    private void bind(PreparedStatement statement, StatsPlayer player) throws SQLException {
+        Object[] values = parameters(player);
+        for (int index = 0; index < values.length; index++) {
+            statement.setObject(index + 1, values[index]);
+        }
     }
 }
