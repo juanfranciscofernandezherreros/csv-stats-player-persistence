@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 - 2026-09-26
+
+- [minor] KAN-22 cambia PLAYER persistence a consumo Kafka batch con `KAFKA_MAX_POLL_RECORDS=500` por defecto.
+- [minor] Persiste cada poll mediante una única llamada `JdbcTemplate.batchUpdate(...)`, manteniendo el `ON CONFLICT (match_id, name, team) DO UPDATE` de KAN-53.
+- [minor] Activa `reWriteBatchedInserts=true` en PostgreSQL para reducir round-trips.
+- [minor] Añade tests del listener batch, del servicio batch y una medición de throughput secuencial frente a JDBC batch con 1.000 jugadores.
+
 ## 1.2.0 - 2026-09-26
 
 - [minor] KAN-53 sustituye `findByMatchIdAndNameAndTeam() + save()` por un upsert PostgreSQL atómico.

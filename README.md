@@ -1,4 +1,4 @@
-![version](https://img.shields.io/badge/version-1.2.0-blue)
+![version](https://img.shields.io/badge/version-1.3.0-blue)
 # csv-stats-player-persistence
 
 Microservicio de persistencia separado de `csv-stats-player-consumer`.
@@ -40,6 +40,28 @@ Este repositorio ya no mantiene copias locales de esos schemas ni genera las cla
 Hibernate usa identificadores entrecomillados para mantener compatibilidad con las columnas históricas `"or"` y `"to"` de PostgreSQL.
 
 Variables: `DB_URL`, `DB_USER`, `DB_PASS`, `KAFKA_BOOTSTRAP_SERVERS`, `KAFKA_SCHEMA_REGISTRY_URL`, `KAFKA_PARSED_STATS_PLAYER_TOPIC`.
+
+## Persistencia batch
+
+KAN-22 cambia el camino Kafka de PLAYER a procesamiento por poll:
+
+```text
+Kafka poll (hasta 500)
+        ↓
+ParsedStatsPlayerConsumer
+        ↓
+persistBatch(...)
+        ↓
+JdbcTemplate.batchUpdate(...)
+        ↓
+PostgreSQL
+```
+
+`KAFKA_MAX_POLL_RECORDS` controla el tamaño máximo del poll y vale `500` por defecto. El driver PostgreSQL usa `reWriteBatchedInserts=true` para reducir round-trips. El batch conserva el mismo `ON CONFLICT (match_id, name, team) DO UPDATE` de KAN-53, por lo que redeliveries del poll siguen siendo idempotentes.
+
+Si una escritura del batch falla, falla la transacción y el error vuelve a la estrategia Kafka de retry/DLT existente. No se confirma parcialmente un poll desde el servicio de persistencia.
+
+La suite de integración ejecuta una medición con 1.000 jugadores comparando el upsert secuencial con `JdbcTemplate.batchUpdate` y publica ambos throughputs y su ratio en el log de CI. El test verifica corrección y registra la medida sin imponer un umbral temporal frágil.
 
 Tests: `mvn -B test`. Integración PostgreSQL: `mvn -B verify -Pintegration`.
 

@@ -7,10 +7,21 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ParsedStatsPlayerConsumer {
  private final StatsPlayerPersistenceService service;
- public ParsedStatsPlayerConsumer(StatsPlayerPersistenceService service){this.service=service;}
- @KafkaListener(topics="${app.kafka.topics.parsed-stats-player}",groupId="${spring.kafka.consumer.group-id}")
- public void listen(ConsumerRecord<StatsPlayerKey, StatsPlayerValue> record){ service.persist(record.value()); }
+
+ public ParsedStatsPlayerConsumer(StatsPlayerPersistenceService service) {
+  this.service = service;
+ }
+
+ @KafkaListener(
+         topics="${app.kafka.topics.parsed-stats-player}",
+         groupId="${spring.kafka.consumer.group-id}"
+ )
+ public void listen(List<ConsumerRecord<StatsPlayerKey, StatsPlayerValue>> records) {
+  service.persistBatch(records.stream().map(ConsumerRecord::value).toList());
+ }
 }
